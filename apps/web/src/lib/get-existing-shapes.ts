@@ -58,6 +58,21 @@ export const getExistingShapes = (
         ctx.stroke();
         break;
       }
+      case "line": {
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx || !canvas) {
+          console.log("No Convas Is There");
+          return;
+        }
+
+        ctx.beginPath();
+        ctx.strokeStyle = "white";
+        ctx.moveTo(shape.startingX, shape.startingY);
+        ctx.lineTo(shape.endingX, shape.endingY);
+        ctx.stroke();
+        break;
+      }
     }
   });
 };

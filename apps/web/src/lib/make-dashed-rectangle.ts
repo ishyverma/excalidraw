@@ -1,4 +1,4 @@
-export const makeRectangle = (startingX: number, startingY: number, width: number, height: number, canvas: HTMLCanvasElement) => {
+export const makeDashedRectangle = (startingX: number, startingY: number, width: number, height: number, canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext("2d")
 
     if (!ctx || !canvas) {
@@ -6,7 +6,7 @@ export const makeRectangle = (startingX: number, startingY: number, width: numbe
         return;
     }
 
-    ctx.strokeStyle = 'white'
+    ctx.strokeStyle = '#9492d6'
     ctx.strokeRect(startingX, startingY, width, height)
     ctx.stroke();
 }
