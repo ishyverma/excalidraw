@@ -73,6 +73,27 @@ export const getExistingShapes = (
         ctx.stroke();
         break;
       }
+      case "arrow": {
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx || !canvas) {
+          console.log("No Convas Is There");
+          return;
+        }
+
+        ctx.strokeStyle = "white";
+        let headlen = 10;
+        let dx = shape.endingX - shape.startingX;
+        let dy = shape.endingY - shape.startingY;
+        let angle = Math.atan2(dy, dx);
+        ctx.moveTo(shape.startingX, shape.startingY);
+        ctx.lineTo(shape.endingX, shape.endingY);
+        ctx.lineTo(shape.endingX - headlen * Math.cos(angle - Math.PI / 6), shape.endingY - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(shape.endingX, shape.endingY);
+        ctx.lineTo(shape.endingX - headlen * Math.cos(angle + Math.PI / 6), shape.endingY - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.strokeStyle = "white";
+        ctx.stroke();
+      }
     }
   });
 };

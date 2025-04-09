@@ -5,15 +5,17 @@ import { getMousePosition } from "@/lib/get-mouse-position";
 import { showRectangle } from "@/lib/show-rectangle";
 import { makeRectangle } from "@/lib/make-rectangle";
 import { cn } from "@/lib/utils";
-import { Circle, Pencil, Square } from "lucide-react";
+import { Circle, MoveRight, Pencil, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { showCircle } from "@/lib/show-circle";
 import { makeCircle } from "@/lib/make-circle";
 import { showLine } from "@/lib/show-line";
 import { makeLine } from "@/lib/make-line";
 import { makeDashedRectangle } from "@/lib/make-dashed-rectangle";
+import { makeArrow } from "@/lib/make-arrow";
+import { showArrow } from "@/lib/show-arrow";
 
-type Objects = "rectangle" | "circle" | "line" | "pencil";
+type Objects = "rectangle" | "circle" | "line" | "pencil" | "arrow";
 
 export interface Rectangle {
   shape: "rectangle";
@@ -43,11 +45,20 @@ export interface Circle {
   isDragging: boolean;
 }
 
+export interface Arrow {
+  shape: "arrow",
+  startingX: number;
+  startingY: number;
+  endingX: number;
+  endingY: number;
+  isDragging: boolean; 
+}
+
 export interface Pencil {
   shape: "pencil"; 
 }
 
-export type ExistingShapes = Rectangle | Circle | Line;
+export type ExistingShapes = Rectangle | Circle | Line | Arrow;
 
 const Canvas = () => {
   const existingShapes = useRef<ExistingShapes[]>([]);
@@ -87,13 +98,6 @@ const Canvas = () => {
           startingX.current = x;
           startingY.current = y;
           mouseDown.current = true;
-          if (shape.current === 'pencil') {
-            const ctx = canvas.current!.getContext("2d");
-            if (!ctx) return;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            setDrawing(true);
-          }
         }
       );
 
@@ -133,15 +137,19 @@ const Canvas = () => {
                 showLine(canvas.current!, existingShapes.current, startingX.current, startingY.current, x, y)
                 break;
               }
-              case "pencil": {
-                const ctx = canvas.current!.getContext("2d");
-                if (!ctx) return;
-                ctx.lineTo(x, y);
-                ctx.strokeStyle = "white";
-                ctx.lineWidth = 2;
-                ctx.lineCap = "round";
-                ctx.stroke();
-                break;
+              // case "pencil": {
+              //   const ctx = canvas.current!.getContext("2d");
+              //   if (!ctx) return;
+              //   ctx.lineTo(x, y);
+              //   ctx.strokeStyle = "white";
+              //   ctx.lineWidth = 2;
+              //   ctx.lineCap = "round";
+              //   ctx.stroke();
+              //   break;
+              // }
+              case "arrow": {
+                const { x, y } = getMousePosition(canvas.current!, e);
+                showArrow(canvas.current!, existingShapes.current, x, y, startingX.current, startingY.current,)
               }
             }
           }
@@ -220,11 +228,23 @@ const Canvas = () => {
             });
           }
           // TODO: Push the drawing to the ExisitingShapes array
-          case "pencil": {
-            const ctx = canvas.current!.getContext("2d");
-            if (!ctx) return;
-            ctx.closePath();
-            setDrawing(false);
+          // case "pencil": {
+          //   const ctx = canvas.current!.getContext("2d");
+          //   if (!ctx) return;
+          //   ctx.closePath();
+          //   setDrawing(false);
+          // }
+          case "arrow": {
+            const { x, y } = getMousePosition(canvas.current!, e);
+            makeArrow(canvas.current!, x, y, startingX.current, startingY.current)
+            existingShapes.current.push({
+              shape: "arrow",
+              startingX: startingX.current,
+              startingY: startingY.current,
+              endingX: x,
+              endingY: y,
+              isDragging: false,
+            });
           }
         }
 
@@ -306,6 +326,22 @@ const Canvas = () => {
             <Pencil className="text-white w-5 h-5" />
             <p className="text-neutral-400 text-[10px] absolute self-end pb-[5px] left-[34px]">
               4
+            </p>
+          </div>
+          <div
+            onClick={() => {
+              setObject("arrow");
+            }}
+            className={cn(
+              "flex items-center gap-px h-full cursor-pointer bg-[#31303B] px-3 rounded-lg relative border border-[#31303B]",
+              object === "arrow"
+                ? "bg-[#403E6A]"
+                : "active:border active:border-[#B1AEFF]"
+            )}
+          >
+            <MoveRight className="text-white w-5 h-5" />
+            <p className="text-neutral-400 text-[10px] absolute self-end pb-[5px] left-[34px]">
+              5
             </p>
           </div>
         </div>
