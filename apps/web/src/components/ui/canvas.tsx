@@ -4,6 +4,13 @@ import { useWebsocket } from "@/hooks/useWebsocket";
 import { cn } from "@/lib/utils";
 import { Circle, MoveRight, Pencil, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Palette } from "lucide-react";
 
 type Objects = "rectangle" | "circle" | "line" | "pencil" | "arrow";
 type Colors = "white" | "red" | "green" | "blue";
@@ -62,6 +69,7 @@ export type ExistingShapes = Rectangle | Circle | Line | Arrow | Pencil;
 
 const Canvas = () => {
   const existingShapes = useRef<ExistingShapes[]>([]);
+  const [color, setColor] = useState<Colors>("white");
   const canvas = useRef<HTMLCanvasElement>(null);
   const redrawCanvasRef = useRef<(() => void) | null>(null);
   const startingX = useRef<number>(0);
@@ -88,6 +96,49 @@ const Canvas = () => {
         type: "join_canvas",
       });
 
+      function keyboardClick(e: KeyboardEvent) {
+        switch (e.key) {
+          case "1": {
+            setObject("rectangle");
+            break;
+          }
+          case "2": {
+            setObject("circle");
+            break;
+          }
+          case "3": {
+            setObject("line");
+            break;
+          }
+          case "4": {
+            setObject("pencil");
+            break;
+          }
+          case "5": {
+            setObject("arrow");
+            break;
+          }
+          case "r": {
+            setColor("red");
+            break;
+          }
+          case "b": {
+            setColor("blue");
+            break;
+          }
+          case "w": {
+            setColor("white");
+            break;
+          }
+          case "g": {
+            setColor("green");
+            break;
+          }
+        }
+      }
+
+      window.addEventListener("keydown", keyboardClick);
+
       canvas.current.width = window.innerWidth;
       canvas.current.height = window.innerHeight;
 
@@ -95,6 +146,7 @@ const Canvas = () => {
         ctx.save();
         ctx.beginPath();
         ctx.lineWidth = 2 / scale;
+        // Use the shape's stored color instead of the current color
         ctx.strokeStyle = shape.color;
 
         switch (shape.shape) {
@@ -108,27 +160,23 @@ const Canvas = () => {
             break;
           }
           case "circle": {
-            let radiusX = (shape.endingX - shape.startingX) * 0.5,
-              radiusY = (shape.endingY - shape.startingY) * 0.5,
-              centerX = shape.startingX + radiusX,
-              centerY = shape.startingY + radiusY,
-              step = 0.01,
-              a = step,
-              pi2 = Math.PI * 2 - step;
+            let radiusX = (shape.endingX - shape.startingX) * 0.5;
+            let radiusY = (shape.endingY - shape.startingY) * 0.5;
+            let centerX = shape.startingX + radiusX;
+            let centerY = shape.startingY + radiusY;
 
             ctx.moveTo(
               centerX + radiusX * Math.cos(0),
               centerY + radiusY * Math.sin(0)
             );
 
-            for (; a < pi2; a += step) {
+            for (let i = 0; i <= 360; i += 5) {
+              const radian = (i * Math.PI) / 180;
               ctx.lineTo(
-                centerX + radiusX * Math.cos(a),
-                centerY + radiusY * Math.sin(a)
+                centerX + radiusX * Math.cos(radian),
+                centerY + radiusY * Math.sin(radian)
               );
             }
-
-            ctx.closePath();
             break;
           }
           case "line": {
@@ -168,7 +216,6 @@ const Canvas = () => {
           }
         }
 
-        ctx.strokeStyle = "white";
         ctx.stroke();
         ctx.restore();
       }
@@ -211,12 +258,12 @@ const Canvas = () => {
         if (!canvas.current) return { x, y };
 
         const rect = canvas.current.getBoundingClientRect();
-        
+
         const scaleX = canvas.current.width / rect.width;
         const canvasX = (x - rect.left) * scaleX;
         const scaleY = canvas.current.height / rect.height;
         const canvasY = (y - rect.top) * scaleY;
-        
+
         const centerX = canvas.current.width / 2;
         const centerY = canvas.current.height / 2;
         const transformedX = (canvasX - centerX) / scale - offsetX;
@@ -274,7 +321,7 @@ const Canvas = () => {
                 endingX: x,
                 endingY: y,
                 isDragging: false,
-                color: "white",
+                color: color,
               };
               break;
             }
@@ -289,7 +336,7 @@ const Canvas = () => {
                 endingX: x,
                 endingY: y,
                 isDragging: false,
-                color: "white",
+                color: color,
               };
               break;
             }
@@ -301,7 +348,7 @@ const Canvas = () => {
                 endingX: x,
                 endingY: y,
                 isDragging: false,
-                color: "white",
+                color: color,
               };
               break;
             }
@@ -313,7 +360,7 @@ const Canvas = () => {
                 endingX: x,
                 endingY: y,
                 isDragging: false,
-                color: "white",
+                color: color,
               };
               break;
             }
@@ -322,7 +369,7 @@ const Canvas = () => {
                 shape: "pencil",
                 points: [{ x, y }],
                 isDragging: false,
-                color: "white",
+                color: color,
               };
               break;
             }
@@ -410,6 +457,7 @@ const Canvas = () => {
         canvas.current?.removeEventListener("mousemove", onMouseMove);
         canvas.current?.removeEventListener("mouseup", onMouseUp);
         canvas.current?.removeEventListener("contextmenu", onContextMenu);
+        window.removeEventListener("keydown", keyboardClick);
       };
     }
   }, [
@@ -421,14 +469,14 @@ const Canvas = () => {
     isDragging,
     lastX,
     lastY,
-    "white",
+    color,
   ]);
 
   return (
     <>
       <div className="relative">
         <canvas className="bg-black" ref={canvas}></canvas>
-        <div className="absolute bg-[#232329] w-[50vw] translate-x-[50%] h-[50px] top-4 rounded-lg flex items-center gap-1 px-1 py-1">
+        <div className="absolute bg-[#232329] w-[22vw] -translate-x-[50%] left-[50%] h-[50px] top-4 rounded-lg flex items-center gap-1 px-1 py-1">
           <div
             onClick={() => {
               setObject("rectangle");
@@ -508,7 +556,37 @@ const Canvas = () => {
             <p className="text-neutral-400 text-[10px] absolute self-end pb-[5px] left-[34px]">
               5
             </p>
-          </div>{" "}
+          </div>
+          <div className="h-full w-px bg-[#2D2D2D] mx-1" />
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-px h-full cursor-pointer bg-[#31303B] px-3 rounded-lg relative border border-[#31303B] hover:border-[#B1AEFF]">
+              <Palette className="text-white w-5 h-5" />
+              <div
+                className="w-2 h-2 rounded-full ml-2"
+                style={{ backgroundColor: color }}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-[#232329] border-[#2D2D2D]">
+              {[
+                { color: "white", label: "White" },
+                { color: "red", label: "Red" },
+                { color: "green", label: "Green" },
+                { color: "blue", label: "Blue" },
+              ].map((item) => (
+                <DropdownMenuItem
+                  key={item.color}
+                  onClick={() => setColor(item.color as Colors)}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-[#31303B] focus:bg-[#31303B]"
+                >
+                  <div
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-white">{item.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="absolute bottom-4 left-4 bg-[#1C1C1C] rounded-md flex items-center select-none">
           <button
