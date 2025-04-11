@@ -1,6 +1,5 @@
 "use client";
 
-import { useWebsocket } from "@/hooks/useWebsocket";
 import { cn } from "@/lib/utils";
 import { Circle, MoveRight, Pencil, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -75,7 +74,6 @@ const Canvas = () => {
   const startingX = useRef<number>(0);
   const startingY = useRef<number>(0);
   const mouseDown = useRef<boolean>(false);
-  const { connected, sendMessage } = useWebsocket("ws://localhost:8080");
   const [object, setObject] = useState<Objects>("rectangle");
   const shape = useRef<Objects>("rectangle");
   const [scale, setScale] = useState(1);
@@ -91,10 +89,7 @@ const Canvas = () => {
   }, [object]);
 
   useEffect(() => {
-    if (canvas.current && connected) {
-      sendMessage({
-        type: "join_canvas",
-      });
+    if (canvas.current) {
 
       function keyboardClick(e: KeyboardEvent) {
         switch (e.key) {
@@ -462,7 +457,6 @@ const Canvas = () => {
     }
   }, [
     canvas,
-    connected,
     scale,
     offsetX,
     offsetY,
